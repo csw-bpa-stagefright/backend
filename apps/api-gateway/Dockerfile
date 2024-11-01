@@ -2,7 +2,7 @@
 # In apps/api-gateway/Dockerfile or apps/billing/Dockerfile
 
 # Use Node.js base image
-FROM node:18
+FROM node:20
 
 # Set working directory
 WORKDIR /usr/src/app

@@ -13,3 +13,6 @@ export * from "./auth/services/userauth.service"
 // Class Exports
 export * from "./classes/dto.class"
 export * from "./classes/result.class"
+
+// DTO Exports
+export * from "./dtos/CreateUserBillingDto.dto"

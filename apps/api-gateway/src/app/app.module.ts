@@ -15,7 +15,10 @@ import { AccountActionsProvider } from './services/user/accountactions.service';
         transport: Transport.REDIS,
         options: {
           host: process.env.REDIS_HOST,
+          username: process.env.REDIS_USERNAME ?? "",
+          password: process.env.REDIS_PASSWORD ?? "",
           port: parseInt(process.env.REDIS_PORT),  
+          tls: {}
         },
       }
     ]),

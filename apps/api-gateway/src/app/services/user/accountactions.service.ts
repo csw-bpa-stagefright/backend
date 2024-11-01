@@ -14,9 +14,11 @@ export class AccountActionsProvider {
     async loginUser(payload: UserLoginPayload) : Promise<Result<LoginUserReturnInterface, LoginUserReturnInterface>> {
         try {
             const verify = await this.authService.verifyUserWithCredentials(payload.unpack().email, payload.unpack().password);
+
             if ((verify.statusCode==1) || (!(verify.userData))) {
                 return new Err({data: 'error', error: `${verify.errorCode} ${verify.errorInfo}`});
             }
+
             if (!(verify.userVerified)) {
                 return new Err({data: 'error', error: "unverified user"});
             }
@@ -29,6 +31,7 @@ export class AccountActionsProvider {
             );
 
             return new Ok({data:'success',token:jwt.token});
+
         } catch(e) {
             return new Err({data:'error',error:e})
         }
@@ -39,10 +42,12 @@ export class AccountActionsProvider {
             const newUser = await this.prisma.user.create({
                 data: payload.unpack()
             });
+
             return new Ok({
                 data: "success",
                 user: newUser
             });
+
         } catch(e) {
             return new Err({
                 data: 'error',

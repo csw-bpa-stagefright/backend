@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 
-import { BillingController } from './billing.controller';
-import { BillingService } from './billing.service';
+import { BillingController } from './controllers/billing.controller';
+import { BillingService } from './services/billing.service';
 import { PrismaModule } from '@backend/libs';
 
 @Module({
