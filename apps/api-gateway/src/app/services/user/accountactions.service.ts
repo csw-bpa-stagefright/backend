@@ -1,4 +1,4 @@
-import { Ok, PrismaService, Result, Err, UserAuthService, AuthService } from "@backend/libs";
+import { Ok, PrismaService, Result, Err, AuthService } from "@backend/libs";
 import { Injectable } from "@nestjs/common";
 import { UserCreationPayload } from "../../dtos/user/user-creation-payload.dto";
 import { User } from "@prisma/client";
@@ -54,11 +54,13 @@ export class AccountActionsProvider {
 
 interface CreateUserReturnInterface {
     data: "success" | "error",
+    // eslint-disable-next-line
     error?:any,
     user?: User
 }
 
 interface LoginUserReturnInterface {
+    // eslint-disable-next-line
     error?:any;
     data: "success" | "error",
     token?:string;

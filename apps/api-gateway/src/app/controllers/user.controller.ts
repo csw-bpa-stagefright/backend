@@ -1,7 +1,7 @@
 import { Body, Controller, HttpStatus, Inject, Post, Res } from "@nestjs/common";
 import { AccountActionsProvider } from "../services/user/accountactions.service";
 import { AuthService, Err } from "@backend/libs";
-import e, { Response } from 'express';
+import { Response } from 'express';
 import { UserCreationPayload } from "../dtos/user/user-creation-payload.dto";
 import { UserLoginPayload } from "../dtos/user/user-login-payload.dto";
 
