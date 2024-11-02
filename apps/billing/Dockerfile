@@ -16,6 +16,8 @@ COPY . .
 # Build the application
 RUN npm run build:billing
 
+RUN npx prisma generate && npx prisma db push
+
 # Expose the port (set per service)
 EXPOSE 3001
 

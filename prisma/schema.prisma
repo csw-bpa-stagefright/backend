@@ -1,5 +1,5 @@
 datasource db {
-  provider = "mysql"
+  provider = "cockroachdb"
   url      = env("DATABASE_URL")
 }
 
@@ -81,5 +81,5 @@ model AccountNotification {
   userId String
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   header String
-  message String @db.Text()
+  message String
 }
