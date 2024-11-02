@@ -17,7 +17,7 @@ COPY . .
 RUN npm run build:billing
 
 # Expose the port (set per service)
-EXPOSE 3001
+EXPOSE 3002
 
 # Start the application
-CMD ["node", "dist/apps/billing/main.js"]
+CMD ["node", "dist/apps/notifications/main.js"]

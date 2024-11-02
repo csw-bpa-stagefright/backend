@@ -1,6 +1,3 @@
-# Example Dockerfile for a NestJS service
-# In apps/api-gateway/Dockerfile or apps/billing/Dockerfile
-
 # Use Node.js base image
 FROM node:20
 

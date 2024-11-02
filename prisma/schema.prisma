@@ -58,6 +58,7 @@ model User {
   
   bills Bill[]
   tickets Ticket[]
+  notifications AccountNotification[]
 }
 
 model MerchItem {
@@ -73,4 +74,12 @@ model AdminUser {
   name String
   email String 
   hashedPassword String
+}
+
+model AccountNotification {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  header String
+  message String @db.Text()
 }

@@ -8,6 +8,7 @@ import { UserController } from './controllers/user.controller';
 import { AccountActionsProvider } from './services/user/accountactions.service';
 import { TicketController } from './controllers/ticket.controller';
 import { TicketService } from './services/ticket/ticket.service';
+import { NotificationsController } from './controllers/notifications.controller';
 
 @Module({
   imports: [
@@ -27,7 +28,7 @@ import { TicketService } from './services/ticket/ticket.service';
     AuthModule,
     PrismaModule
   ],
-  controllers: [AppController, UserController, TicketController],
+  controllers: [AppController, UserController, TicketController, NotificationsController],
   providers: [
     TicketService,
     AppService,
