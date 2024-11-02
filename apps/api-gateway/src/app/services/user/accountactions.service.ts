@@ -1,5 +1,5 @@
 import { Ok, PrismaService, Result, Err, AuthService } from "@backend/libs";
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import { UserCreationPayload } from "../../dtos/user/user-creation-payload.dto";
 import { User } from "@prisma/client";
 import { UserLoginPayload } from "../../dtos/user/user-login-payload.dto";
@@ -27,6 +27,7 @@ export class AccountActionsProvider {
                 {
                     email: verify.userData.email,
                     name: verify.userData.name,
+                    userId: verify.userData.id
                 }
             );
 

@@ -49,7 +49,8 @@ export class UserController {
 
         const token = this.authService.createNewJwt({
             name: unwrapped.user.name,
-            email: unwrapped.user.email
+            email: unwrapped.user.email,
+            userId: result.unwrapOr({data:'error'}).user.id
         });
 
         unwrapped["token"] = token;

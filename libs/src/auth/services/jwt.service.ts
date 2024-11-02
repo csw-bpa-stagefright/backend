@@ -1,7 +1,9 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import * as jwt from "jsonwebtoken";
 import { NewJwtReturnObject } from "../interfaces/NewJwtReturnObject.interface";
 import { VerifyJwtReturnObject } from "../interfaces/VerifyJwtReturnObject.interface";
+import { Result, Err, Ok } from "../../classes/result.class";
+import { ResultInterface } from "../../interfaces/ResultInterface.interface";
 
 @Injectable()
 export class JwtService {
@@ -20,13 +22,15 @@ export class JwtService {
         token: string
       ): VerifyJwtReturnObject {
         try {
-          const verify = jwt.verify(token, process.env["JWT_SECRET"] as string);
+          const verify = jwt.verify(token, process.env['JWT_SECRET'] as string);
+
           if (verify) {
-            return { isValid: true, statusCode: 0 }
+            return { isValid: true, statusCode: 0, payload: verify }
           }
-          return { isValid: false, statusCode: 0 }
+          return { isValid: false, statusCode: 0, payload:null }
         } catch(e) {
-          return { statusCode: 1 }
+          Logger.log(e)
+          return { statusCode: 1, payload:null }
         }
       } 
 }

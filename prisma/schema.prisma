@@ -24,8 +24,18 @@ model Concert {
   location String
   date DateTime
   description String?
+  ticketCost Int
   
   tickets Ticket[]
+  concertAttendence ConcertAttendence[]
+}
+
+model ConcertAttendence {
+  id String @id @default(cuid())
+  ticketId String
+  ticket Ticket @relation(fields: [ticketId], references: [id])
+  concertId String
+  concert Concert @relation(fields: [concertId], references: [id], onDelete: Cascade)
 }
 
 model Ticket {
@@ -35,6 +45,8 @@ model Ticket {
 
   concert Concert @relation(fields: [concertId], references: [id], onDelete: Cascade)
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  concertAttendence ConcertAttendence[]
 }
 
 model User {

@@ -1,8 +1,8 @@
 import { Controller, Logger } from '@nestjs/common';
 
 import { BillingService } from '../services/billing.service';
-import { EventPattern, Payload } from '@nestjs/microservices';
-import { CreateUserBillingDto, Err } from '@backend/libs';
+import { EventPattern, MessagePattern, Payload } from '@nestjs/microservices';
+import { CreateUserBillingDto, Err, ProcessTicketsPurchaseDto } from '@backend/libs';
 
 @Controller()
 export class BillingController {
@@ -10,7 +10,45 @@ export class BillingController {
     private readonly billingService: BillingService
   ) {}
 
-  @EventPattern("CREATE_USER_BILLING")
+  @MessagePattern("TEST_PATTERN")
+  async testPattern() {
+    return "hi";
+  }
+
+  @MessagePattern("PROCESS_TICKETS_PURCHASE")
+  async processTicketsPurchase(
+    @Payload() payload: {
+      token: string;
+      payload: {
+        userId: string;
+        concertId: string;
+        quantity: number;
+      }
+    },
+  ) {
+    const ProcessTicketsPurchasePayload = new ProcessTicketsPurchaseDto(payload.payload);
+
+    const result = await this.billingService.processTicketsPurchase(payload.token, ProcessTicketsPurchasePayload);
+
+    if (
+        (result.isErr())
+        ||
+        (result instanceof Err)
+    ) {
+      return {
+        data: 'service error',
+        error:result.unwrapErr()
+      };
+    }
+
+    const unwrapped = result.unwrapOr({
+        data: 'error'
+    });
+
+    return unwrapped;
+  }
+
+  @MessagePattern("CREATE_USER_BILLING")
   async createUserBilling(
     @Payload() payload: {
       userId: string,
@@ -19,8 +57,7 @@ export class BillingController {
       imageUrl?:string;
     }
   ) {
-    Logger.log("User Billing is Toggled")
-
+    Logger.log("CREATE_USER_BILLING ACTIVATED")
     const CreateUserBillingPayload = new CreateUserBillingDto(payload);
 
     const result = await this.billingService.createNewBilling(CreateUserBillingPayload);
@@ -30,13 +67,14 @@ export class BillingController {
         ||
         (result instanceof Err)
     ) {
-      return;
+      return {
+        data: 'error'
+      };
     }
 
     const unwrapped = result.unwrapOr({
         data: 'error'
     });
-
     return unwrapped;
   }
 }

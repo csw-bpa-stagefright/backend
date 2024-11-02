@@ -10,9 +10,9 @@ async function bootstrap() {
       options: {
         host: process.env.REDIS_HOST,
         port: parseInt(process.env.REDIS_PORT),  
-        username: process.env.REDIS_USERNAME,
-        password: process.env.REDIS_PASSWORD,
-        tls: {}
+        username: process.env.REDIS_USERNAME ?? "",
+        password: process.env.REDIS_PASSWORD ?? "",
+        tls: parseInt(process.env.REDIS_USE_TLS)==1 ? {} : null,
       }
     }
   );
