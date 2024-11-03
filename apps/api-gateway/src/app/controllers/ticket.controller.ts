@@ -14,6 +14,74 @@ export class TicketController {
     @Inject(AuthService) private readonly authService: AuthService
     ) {}
 
+    @Post("get")
+    async getTicketInfo(
+        @Body() body: {
+            ticketId: string
+        },
+        @Headers() headers,
+        @Res() response: Response
+    ) {
+        try {
+            const token = headers["authorization"];
+
+            if (!(body) || !(body.ticketId)) {
+                return response.status(HttpStatus.BAD_REQUEST).json({data:'error',error:'malformed body'});
+            }
+
+            const result = await this.ticketService.getTicket({
+                token: token,
+                ...body
+            }) as any;
+
+            if ((result) && (result.error)) {
+                return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({data:'error',error:result.error});
+            }
+
+            if (result.value) {
+                return response.json(result.value);
+            }
+
+            return response.json(result);
+        } catch(e) {
+            Logger.error(e);
+            return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({data:'error',error:e});
+        }
+    }
+
+    @Post("scan")
+    async scanTicket(
+        @Body() body: {
+            ticketId: string;
+            concertId: string;
+        },
+        @Headers() headers,
+        @Res() response: Response
+    ) {
+        try {
+            const token = headers["authorization"];
+
+            const result = await this.ticketService.scanTicket({
+                token: token,
+                ...body
+            }) as any;
+
+            if ((result) && (result.error)) {
+                return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({data:'error',error:result.error});
+            }
+
+            if (result.value) {
+                return response.json(result.value);
+            }
+
+            return response.json(result);
+
+        } catch(e) {
+            Logger.error(e);
+            return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({data:'error',error:e});
+        }
+    }
+
     @Post("purchase")
     async purchaseTickets(
         @Body() body: {
