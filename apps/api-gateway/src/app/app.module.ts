@@ -10,21 +10,20 @@ import { TicketController } from './controllers/ticket.controller';
 import { TicketService } from './services/ticket/ticket.service';
 import { NotificationsController } from './controllers/notifications.controller';
 import { CacheModule, CacheStore } from '@nestjs/cache-manager';
-import { redisStore } from 'cache-manager-redis-yet';
+import { redisStore } from 'cache-manager-ioredis-yet';
 
 @Module({
   imports: [
     CacheModule.registerAsync({
       useFactory: async () => {
         const store = await redisStore({
-          socket: {
-            host: process.env.REDIS_HOST,
-            port: parseInt(process.env.REDIS_PORT),  
-            tls: parseInt(process.env.REDIS_USE_TLS)==1 ? true : false,
-          },
+          host: process.env.REDIS_HOST,
+          port: parseInt(process.env.REDIS_PORT),  
+          tls: parseInt(process.env.REDIS_USE_TLS)==1 ? {} : null,
           username: process.env.REDIS_USERNAME ?? "",
           password: process.env.REDIS_PASSWORD ?? "",
-          database: 1
+          db: 1,
+          connectTimeout: 1000
         });
 
         return {
