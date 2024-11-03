@@ -3,7 +3,7 @@ import { NotificationsService } from "../services/notifications.service";
 import { EventPattern, MessagePattern, Payload } from "@nestjs/microservices";
 import { CreateNotificationDto } from "../dtos/CreateNotificationDto.dto";
 import { Err, Ok, Result, ResultInterface } from "@backend/libs";
-import { AccountNotification } from "@prisma/client";
+import { AccountNotification, Concert } from "@prisma/client";
 import { GetNotificationsDto } from "../dtos/GetNotificationsDto.dto";
 
 @Controller()
@@ -15,6 +15,19 @@ export class NotificationsController {
     @Get("/ping")
     ping() {
         return "pong";
+    }
+
+    @EventPattern("NEW_CONCERT_ALERT")
+    async sendNewConcertNotifications(
+        @Payload() payload: {
+            concert: Concert
+        }
+    ) {
+        try {
+            await this.notificationsService.sendNewConcertNotifications({...payload});
+        } catch(e) {
+            Logger.error(e);
+        }
     }
 
     @MessagePattern("GET_USER_NOTIFICATIONS")

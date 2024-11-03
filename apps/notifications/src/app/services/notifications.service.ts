@@ -3,14 +3,28 @@ import { Inject, Injectable, Logger } from "@nestjs/common";
 import { CreateNotificationDto } from "../dtos/CreateNotificationDto.dto";
 import { GetNotificationsDto } from "../dtos/GetNotificationsDto.dto";
 import { Result, Err, Ok, ResultInterface } from "@backend/libs";
-import { AccountNotification } from "@prisma/client";
+import { AccountNotification, Concert } from "@prisma/client";
+import { ClientProxy } from "@nestjs/microservices";
 
 @Injectable()
 export class NotificationsService {
     constructor(
         @Inject(PrismaService) private readonly prisma: PrismaService,
-        @Inject(AuthService) private readonly authService: AuthService
+        @Inject(AuthService) private readonly authService: AuthService,
+        @Inject("CLIENT_PROXY") private readonly clientProxy: ClientProxy
     ) {}
+
+    public async sendNewConcertNotifications(payload: {
+        concert: Concert
+    }) {
+        for (const user of await this.prisma.user.findMany()) {
+            await this.clientProxy.emit("CREATE_USER_NOTIFICATION", {
+                userId: user.id,
+                header: `New Concert Has Dropped: ${payload.concert.name}! Ticket sales are available!`,
+                message: `Buy tickets to ${payload.concert.name} for just $${payload.concert.ticketCost}!`
+            })
+        }
+    }
 
     public async getUserNotifications(payload: GetNotificationsDto) : Promise<Result<{notifications?: AccountNotification[]}&ResultInterface<string>,ResultInterface<string>>>{
         const unpacked = payload.unpack();

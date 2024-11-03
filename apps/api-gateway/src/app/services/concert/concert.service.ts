@@ -1,16 +1,17 @@
 import { AuthService, Err, Ok, PrismaService, Result, ResultInterface } from "@backend/libs";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Inject, Injectable, Logger } from "@nestjs/common";
+import { ClientProxy } from "@nestjs/microservices";
 import { Concert } from "@prisma/client";
 import { Cache } from "cache-manager";
-import { skip } from "rxjs";
 
 @Injectable()
 export class ConcertService {
     constructor(
         @Inject(PrismaService) private readonly prisma: PrismaService,
         @Inject(AuthService) private readonly authService: AuthService,
-        @Inject(CACHE_MANAGER) private readonly cacheManager: Cache
+        @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
+        @Inject("CLIENT_PROXY") private readonly clientProxy: ClientProxy
     ) {}
 
     async getConcerts(payload: {
@@ -95,6 +96,14 @@ export class ConcertService {
             });
 
             await this.cacheManager.del("concerts");
+
+            try {
+                await this.clientProxy.emit("NEW_CONCERT_ALERT", {
+                    concert: newConcert
+                });
+            } catch(e) {
+                Logger.error(`Notification send failed: ${e}`)
+            }
 
             return new Ok({data:'success',concert:newConcert});
         } catch(e) {
