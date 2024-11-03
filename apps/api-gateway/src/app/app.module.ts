@@ -11,6 +11,8 @@ import { TicketService } from './services/ticket/ticket.service';
 import { NotificationsController } from './controllers/notifications.controller';
 import { CacheModule, CacheStore } from '@nestjs/cache-manager';
 import { redisStore } from 'cache-manager-ioredis-yet';
+import { ConcertController } from './controllers/concert.controller';
+import { ConcertService } from './services/concert/concert.service';
 
 @Module({
   imports: [
@@ -48,8 +50,9 @@ import { redisStore } from 'cache-manager-ioredis-yet';
     AuthModule,
     PrismaModule
   ],
-  controllers: [AppController, UserController, TicketController, NotificationsController],
+  controllers: [AppController, UserController, TicketController, NotificationsController, ConcertController],
   providers: [
+    ConcertService,
     TicketService,
     AppService,
     {

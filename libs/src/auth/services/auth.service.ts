@@ -36,4 +36,8 @@ export class AuthService {
    public async verifyUserWithCredentials(email: string, password: string) {
       return await this.userAuthService.VerifyUserWithCredentials(email, password);
    }
+
+   public async verifyAdminUserWithCredentials(email: string, password: string) {
+      return await this.userAuthService.VerifyAdminUserWithCredentials(email, password);
+   }
 }

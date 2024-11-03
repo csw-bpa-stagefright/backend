@@ -33,6 +33,52 @@ export class UserController {
         }
     }
 
+    @Post("signupadmin")
+    async createAdminUser(
+        @Body() body: {
+            name: string,
+            email: string,
+            password: string
+        },
+        @Res() response: Response
+    ) {
+        if (!(body) || !(body.name) || !(body.email) || !(body.password)) {
+            return response.status(HttpStatus.BAD_REQUEST).json({ data: "malformed body" });
+        }
+        const hashedPassword: string = await this.authService.generateHashedPassword(body.password);
+
+        const UserCreationPayloadDto = new UserCreationPayload({
+            name: body.name,
+            email: body.email,
+            hashedPassword: hashedPassword
+        });
+
+        const result = await this.accountActions.createAdminUser(UserCreationPayloadDto);
+
+        if (
+            (result.isErr())
+            ||
+            (result instanceof Err)
+        ) {
+            return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json(result.unwrapErr());
+        }
+
+        const unwrapped = result.unwrapOr({
+            data: 'error'
+        });
+
+        const token = this.authService.createNewJwt({
+            name: unwrapped.user.name,
+            email: unwrapped.user.email,
+            userId: result.unwrapOr({data:'error'}).user.id,
+            isAdmin: true
+        });
+
+        unwrapped["token"] = token;
+
+        return response.json(unwrapped);
+    }
+
     @Post("signup")
     async createUser(
         @Body() body: {
@@ -75,6 +121,40 @@ export class UserController {
 
         unwrapped["token"] = token;
 
+        return response.json(unwrapped);
+    }
+
+    @Post("loginadmin")
+    async loginAdminUser(
+        @Body() body: {
+            email: string,
+            password: string
+        },
+        @Res() response: Response
+    ) {
+        if (!(body) || !(body.email) || !(body.password)) {
+            return response.status(HttpStatus.BAD_REQUEST).json({ data: "malformed body" });
+        }
+
+        const LoginUserPayloadDto = new UserLoginPayload({
+            email: body.email,
+            password: body.password
+        });
+
+        const result = await this.accountActions.loginAdminUser(LoginUserPayloadDto);
+
+        if (
+            (result.isErr())
+            ||
+            (result instanceof Err)
+        ) {
+            return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json(result.unwrapErr());
+        }
+
+        const unwrapped = result.unwrapOr({
+            data: 'error'
+        });
+    
         return response.json(unwrapped);
     }
 

@@ -1,7 +1,7 @@
 import { Ok, PrismaService, Result, Err, AuthService, ResultInterface } from "@backend/libs";
 import { Inject, Injectable, Logger } from "@nestjs/common";
 import { UserCreationPayload } from "../../dtos/user/user-creation-payload.dto";
-import { User } from "@prisma/client";
+import { AdminUser, User } from "@prisma/client";
 import { UserLoginPayload } from "../../dtos/user/user-login-payload.dto";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Cache } from "cache-manager";
@@ -92,6 +92,52 @@ export class AccountActionsProvider {
         }
     }
 
+    async loginAdminUser(payload: UserLoginPayload) : Promise<Result<LoginUserReturnInterface, LoginUserReturnInterface>> {
+        try {
+            const verify = await this.authService.verifyAdminUserWithCredentials(payload.unpack().email, payload.unpack().password);
+
+            if ((verify.statusCode==1) || (!(verify.userData))) {
+                return new Err({data: 'error', error: `${verify.errorCode} ${verify.errorInfo}`});
+            }
+
+            if (!(verify.userVerified)) {
+                return new Err({data: 'error', error: "unverified user"});
+            }
+
+            const jwt = this.authService.createNewJwt(
+                {
+                    email: verify.userData.email,
+                    name: verify.userData.name,
+                    userId: verify.userData.id,
+                    isAdmin: true
+                }
+            );
+
+            return new Ok({data:'success',token:jwt.token});
+        } catch(e) {
+            return new Err({data:'error',error:e})
+        }
+    }
+
+    async createAdminUser(payload: UserCreationPayload): Promise<Result<CreateAdminUserReturnInterface, CreateAdminUserReturnInterface>> {
+        try {
+            const newUser = await this.prisma.adminUser.create({
+                data: payload.unpack()
+            });
+
+            return new Ok({
+                data: "success",
+                user: newUser
+            });
+
+        } catch(e) {
+            return new Err({
+                data: 'error',
+                error: e
+            });
+        }
+    }
+
     async createUser(payload: UserCreationPayload): Promise<Result<CreateUserReturnInterface, CreateUserReturnInterface>> {
         try {
             const newUser = await this.prisma.user.create({
@@ -110,6 +156,13 @@ export class AccountActionsProvider {
             });
         }
     }
+}
+
+interface CreateAdminUserReturnInterface {
+    data: "success" | "error",
+    // eslint-disable-next-line
+    error?:any,
+    user?: AdminUser
 }
 
 interface CreateUserReturnInterface {
