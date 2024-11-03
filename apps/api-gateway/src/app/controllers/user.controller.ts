@@ -1,4 +1,4 @@
-import { Body, Controller, HttpStatus, Inject, Post, Res } from "@nestjs/common";
+import { Body, Controller, Get, Head, Headers, HttpStatus, Inject, Logger, Post, Res } from "@nestjs/common";
 import { AccountActionsProvider } from "../services/user/accountactions.service";
 import { AuthService, Err } from "@backend/libs";
 import { Response } from 'express';
@@ -12,6 +12,26 @@ export class UserController {
         @Inject("ACCOUNT_ACTIONS_PROVIDER") private readonly accountActions: AccountActionsProvider,
         private readonly authService: AuthService
     ) {}
+
+    @Get("userdetails")
+    async getUserDetails(
+        @Headers() headers,
+        @Res() response: Response
+    ) {
+        const token = headers["authorization"];
+
+        try {
+            const res = await this.accountActions.getProfileDetails(token) as any;
+
+            if (res.value) {
+                return response.json(res.value);
+            }
+            return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json(res);
+        } catch(e) {
+            Logger.error(e);
+            return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({data:'error',error:e});
+        }
+    }
 
     @Post("signup")
     async createUser(

@@ -9,9 +9,30 @@ import { AccountActionsProvider } from './services/user/accountactions.service';
 import { TicketController } from './controllers/ticket.controller';
 import { TicketService } from './services/ticket/ticket.service';
 import { NotificationsController } from './controllers/notifications.controller';
+import { CacheModule, CacheStore } from '@nestjs/cache-manager';
+import { redisStore } from 'cache-manager-redis-yet';
 
 @Module({
   imports: [
+    CacheModule.registerAsync({
+      useFactory: async () => {
+        const store = await redisStore({
+          socket: {
+            host: process.env.REDIS_HOST,
+            port: parseInt(process.env.REDIS_PORT),  
+            tls: parseInt(process.env.REDIS_USE_TLS)==1 ? true : false,
+          },
+          username: process.env.REDIS_USERNAME ?? "",
+          password: process.env.REDIS_PASSWORD ?? "",
+          database: 1
+        });
+
+        return {
+          store: store as unknown as CacheStore,
+          ttl: 3 * 60000,
+        };
+      },
+    }),
     ClientsModule.register([
       {
         name: 'CLIENT_PROXY',

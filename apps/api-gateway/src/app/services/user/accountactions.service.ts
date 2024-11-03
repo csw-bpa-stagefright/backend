@@ -1,15 +1,69 @@
-import { Ok, PrismaService, Result, Err, AuthService } from "@backend/libs";
-import { Injectable, Logger } from "@nestjs/common";
+import { Ok, PrismaService, Result, Err, AuthService, ResultInterface } from "@backend/libs";
+import { Inject, Injectable, Logger } from "@nestjs/common";
 import { UserCreationPayload } from "../../dtos/user/user-creation-payload.dto";
 import { User } from "@prisma/client";
 import { UserLoginPayload } from "../../dtos/user/user-login-payload.dto";
+import { CACHE_MANAGER } from "@nestjs/cache-manager";
+import { Cache } from "cache-manager";
 
 @Injectable()
 export class AccountActionsProvider {
     constructor(
         private readonly prisma: PrismaService,
-        private readonly authService: AuthService
+        private readonly authService: AuthService,
+        @Inject(CACHE_MANAGER) private  readonly cacheManager: Cache
     ) {}
+
+    async getProfileDetails(token: string): Promise<Result<{profile?:any}&ResultInterface<string>, ResultInterface<string>>> {
+        try {
+            const verify = this.authService.verifyJwt(token);
+
+            if (verify.statusCode == 1) {
+                return new Err({data:'error',error:'JWT verification error'});
+            }
+
+            if (verify.isValid == false) {
+                return new Err({data:'error',error:'Invalid JWT'});
+            }
+
+            if (!(verify.payload)) {
+                return new Err({data:'error',error:"Unreadable JWT payload"});
+            }
+
+            if (!(verify.payload.userId)) {
+                return new Err({data:'error',error:"User ID not in JWT payload"});
+            }
+
+            const cachedUserProfile = await this.cacheManager.get(`${verify.payload.userId}-profile`);
+            if (cachedUserProfile) {
+                Logger.log("found from cache")
+                return new Ok({data:'success',profile:cachedUserProfile});
+            }
+
+            const userProfile = await this.prisma.user.findFirst({
+                where: {
+                    id: verify.payload.userId
+                },
+                select: {
+                    id: true,
+                    email: true,
+                    name: true
+                }
+            });
+
+            if (!(userProfile)) {
+                return new Err({data:"error",error:"User not found"});
+            }
+
+            Logger.log("added to cache")
+            await this.cacheManager.set(`${verify.payload.userId}-profile`, userProfile);
+
+            return new Ok({data:'success',profile:userProfile})
+
+        } catch(e) {
+            return new Err({data:"error",error:e});
+        }
+    }
 
     async loginUser(payload: UserLoginPayload) : Promise<Result<LoginUserReturnInterface, LoginUserReturnInterface>> {
         try {
