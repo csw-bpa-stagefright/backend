@@ -1,4 +1,4 @@
-import { Controller, Inject, Logger } from "@nestjs/common";
+import { Controller, Get, Inject, Logger } from "@nestjs/common";
 import { NotificationsService } from "../services/notifications.service";
 import { EventPattern, MessagePattern, Payload } from "@nestjs/microservices";
 import { CreateNotificationDto } from "../dtos/CreateNotificationDto.dto";
@@ -11,6 +11,11 @@ export class NotificationsController {
     constructor(
         @Inject(NotificationsService) private readonly notificationsService: NotificationsService
     ) {}
+
+    @Get("/ping")
+    ping() {
+        return "pong";
+    }
 
     @MessagePattern("GET_USER_NOTIFICATIONS")
     async getUserNotifications(

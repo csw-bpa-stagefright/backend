@@ -14,7 +14,7 @@ RUN npm install
 COPY . .
 
 # Build the application
-RUN npm run build:billing
+RUN npm run build:notifications
 
 RUN npx prisma generate && npx prisma db push
 

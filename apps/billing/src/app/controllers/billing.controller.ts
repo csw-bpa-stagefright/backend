@@ -1,4 +1,4 @@
-import { Controller, Logger } from '@nestjs/common';
+import { Controller, Get, Logger } from '@nestjs/common';
 
 import { BillingService } from '../services/billing.service';
 import { EventPattern, MessagePattern, Payload } from '@nestjs/microservices';
@@ -9,6 +9,11 @@ export class BillingController {
   constructor(
     private readonly billingService: BillingService
   ) {}
+
+  @Get("/ping")
+  ping() {
+    return "pong";
+  }
 
   @MessagePattern("TEST_PATTERN")
   async testPattern() {

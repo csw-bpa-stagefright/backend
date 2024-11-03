@@ -12,4 +12,9 @@ export class AppController {
     @Inject("CLIENT_PROXY") private readonly clientProxy: ClientProxy,
     private readonly authService: AuthService
   ) {}
+
+  @Get("/ping")
+  ping() {
+    return "pong";
+  }
 }

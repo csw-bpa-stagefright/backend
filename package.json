@@ -4,7 +4,8 @@
   "license": "MIT",
   "scripts": {
     "build:api-gateway": "nx build api-gateway",
-    "build:billing": "nx build billing"
+    "build:billing": "nx build billing",
+    "build:notifications": "nx build notifications"
   },
   "private": true,
   "dependencies": {
