@@ -8,6 +8,19 @@ export class ConcertController {
     @Inject(ConcertService) private readonly concertService: ConcertService
   ) { }
 
+  @Post("reset")
+  async resetConcert(
+    @Res() response: Response
+  ) {
+    try {
+      await this.concertService.reset();
+      return response.json({ data: "success" });
+    } catch (e) {
+      Logger.error(e);
+      return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ data: "error", error: e });
+    }
+  }
+
   @Post("getone")
   async getOneConcert(
     @Body() body: {

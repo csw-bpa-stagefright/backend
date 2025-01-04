@@ -4,6 +4,7 @@ import { Inject, Injectable, Logger } from "@nestjs/common";
 import { ClientProxy } from "@nestjs/microservices";
 import { Concert } from "@prisma/client";
 import { Cache } from "cache-manager";
+import getConcerts from "../../concerts";
 
 @Injectable()
 export class ConcertService {
@@ -13,6 +14,27 @@ export class ConcertService {
     @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
     @Inject("CLIENT_PROXY") private readonly clientProxy: ClientProxy
   ) { }
+
+  async reset() {
+    try {
+      const concerts = getConcerts();
+      await this.prisma.concert.deleteMany();
+      for (const concert of concerts) {
+        await this.prisma.concert.create({
+          data: {
+            location: concert.location,
+            ticketCost: concert.ticketPricing,
+            name: concert.name,
+            description: concert.description,
+            date: concert.date,
+            imageUrl: concert.imageLink
+          }
+        });
+      }
+    } catch (e) {
+
+    }
+  }
 
   async getOneConcert(payload: {
     id: string
