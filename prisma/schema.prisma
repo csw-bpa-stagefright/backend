@@ -47,6 +47,9 @@ model Ticket {
   concert Concert @relation(fields: [concertId], references: [id], onDelete: Cascade)
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  isScanned     Boolean  @default(false)
+  datePurchased DateTime @default(now())
+
   concertAttendence ConcertAttendence[]
 }
 

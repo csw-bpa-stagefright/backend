@@ -8,187 +8,187 @@ import { UserLoginPayload } from "../dtos/user/user-login-payload.dto";
 
 @Controller("auth")
 export class UserController {
-    constructor (
-        @Inject("ACCOUNT_ACTIONS_PROVIDER") private readonly accountActions: AccountActionsProvider,
-        private readonly authService: AuthService
-    ) {}
+  constructor(
+    @Inject("ACCOUNT_ACTIONS_PROVIDER") private readonly accountActions: AccountActionsProvider,
+    private readonly authService: AuthService
+  ) { }
 
-    @Get("userdetails")
-    async getUserDetails(
-        @Headers() headers,
-        @Res() response: Response
+  @Get("userdetails")
+  async getUserDetails(
+    @Headers() headers,
+    @Res() response: Response
+  ) {
+    const token = headers["authorization"];
+
+    try {
+      const res = await this.accountActions.getProfileDetails(token) as any;
+
+      if (res.value) {
+        return response.json(res.value);
+      }
+      return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json(res);
+    } catch (e) {
+      Logger.error(e);
+      return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ data: 'error', error: e });
+    }
+  }
+
+  @Post("signupadmin")
+  async createAdminUser(
+    @Body() body: {
+      name: string,
+      email: string,
+      password: string
+    },
+    @Res() response: Response
+  ) {
+    if (!(body) || !(body.name) || !(body.email) || !(body.password)) {
+      return response.status(HttpStatus.BAD_REQUEST).json({ data: "malformed body" });
+    }
+    const hashedPassword: string = await this.authService.generateHashedPassword(body.password);
+
+    const UserCreationPayloadDto = new UserCreationPayload({
+      name: body.name,
+      email: body.email,
+      hashedPassword: hashedPassword
+    });
+
+    const result = await this.accountActions.createAdminUser(UserCreationPayloadDto);
+
+    if (
+      (result.isErr())
+      ||
+      (result instanceof Err)
     ) {
-        const token = headers["authorization"];
-
-        try {
-            const res = await this.accountActions.getProfileDetails(token) as any;
-
-            if (res.value) {
-                return response.json(res.value);
-            }
-            return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json(res);
-        } catch(e) {
-            Logger.error(e);
-            return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({data:'error',error:e});
-        }
+      return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json(result.unwrapErr());
     }
 
-    @Post("signupadmin")
-    async createAdminUser(
-        @Body() body: {
-            name: string,
-            email: string,
-            password: string
-        },
-        @Res() response: Response
+    const unwrapped = result.unwrapOr({
+      data: 'error'
+    });
+
+    const token = this.authService.createNewJwt({
+      name: unwrapped.user.name,
+      email: unwrapped.user.email,
+      userId: result.unwrapOr({ data: 'error' }).user.id,
+      isAdmin: true
+    });
+
+    unwrapped["token"] = token;
+
+    return response.json(unwrapped);
+  }
+
+  @Post("signup")
+  async createUser(
+    @Body() body: {
+      name: string,
+      email: string,
+      password: string
+    },
+    @Res() response: Response
+  ) {
+    if (!(body) || !(body.name) || !(body.email) || !(body.password)) {
+      return response.status(HttpStatus.BAD_REQUEST).json({ data: "malformed body" });
+    }
+    const hashedPassword: string = await this.authService.generateHashedPassword(body.password);
+
+    const UserCreationPayloadDto = new UserCreationPayload({
+      name: body.name,
+      email: body.email,
+      hashedPassword: hashedPassword
+    });
+
+    const result = await this.accountActions.createUser(UserCreationPayloadDto);
+
+    if (
+      (result.isErr())
+      ||
+      (result instanceof Err)
     ) {
-        if (!(body) || !(body.name) || !(body.email) || !(body.password)) {
-            return response.status(HttpStatus.BAD_REQUEST).json({ data: "malformed body" });
-        }
-        const hashedPassword: string = await this.authService.generateHashedPassword(body.password);
-
-        const UserCreationPayloadDto = new UserCreationPayload({
-            name: body.name,
-            email: body.email,
-            hashedPassword: hashedPassword
-        });
-
-        const result = await this.accountActions.createAdminUser(UserCreationPayloadDto);
-
-        if (
-            (result.isErr())
-            ||
-            (result instanceof Err)
-        ) {
-            return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json(result.unwrapErr());
-        }
-
-        const unwrapped = result.unwrapOr({
-            data: 'error'
-        });
-
-        const token = this.authService.createNewJwt({
-            name: unwrapped.user.name,
-            email: unwrapped.user.email,
-            userId: result.unwrapOr({data:'error'}).user.id,
-            isAdmin: true
-        });
-
-        unwrapped["token"] = token;
-
-        return response.json(unwrapped);
+      return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json(result.unwrapErr());
     }
 
-    @Post("signup")
-    async createUser(
-        @Body() body: {
-            name: string,
-            email: string,
-            password: string
-        },
-        @Res() response: Response
-    ) {
-        if (!(body) || !(body.name) || !(body.email) || !(body.password)) {
-            return response.status(HttpStatus.BAD_REQUEST).json({ data: "malformed body" });
-        }
-        const hashedPassword: string = await this.authService.generateHashedPassword(body.password);
+    const unwrapped = result.unwrapOr({
+      data: 'error'
+    });
 
-        const UserCreationPayloadDto = new UserCreationPayload({
-            name: body.name,
-            email: body.email,
-            hashedPassword: hashedPassword
-        });
+    const token = this.authService.createNewJwt({
+      name: unwrapped.user.name,
+      email: unwrapped.user.email,
+      userId: result.unwrapOr({ data: 'error' }).user.id
+    });
 
-        const result = await this.accountActions.createUser(UserCreationPayloadDto);
+    unwrapped["token"] = token;
 
-        if (
-            (result.isErr())
-            ||
-            (result instanceof Err)
-        ) {
-            return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json(result.unwrapErr());
-        }
+    return response.json(unwrapped);
+  }
 
-        const unwrapped = result.unwrapOr({
-            data: 'error'
-        });
-
-        const token = this.authService.createNewJwt({
-            name: unwrapped.user.name,
-            email: unwrapped.user.email,
-            userId: result.unwrapOr({data:'error'}).user.id
-        });
-
-        unwrapped["token"] = token;
-
-        return response.json(unwrapped);
+  @Post("loginadmin")
+  async loginAdminUser(
+    @Body() body: {
+      email: string,
+      password: string
+    },
+    @Res() response: Response
+  ) {
+    if (!(body) || !(body.email) || !(body.password)) {
+      return response.status(HttpStatus.BAD_REQUEST).json({ data: "malformed body" });
     }
 
-    @Post("loginadmin")
-    async loginAdminUser(
-        @Body() body: {
-            email: string,
-            password: string
-        },
-        @Res() response: Response
+    const LoginUserPayloadDto = new UserLoginPayload({
+      email: body.email,
+      password: body.password
+    });
+
+    const result = await this.accountActions.loginAdminUser(LoginUserPayloadDto);
+
+    if (
+      (result.isErr())
+      ||
+      (result instanceof Err)
     ) {
-        if (!(body) || !(body.email) || !(body.password)) {
-            return response.status(HttpStatus.BAD_REQUEST).json({ data: "malformed body" });
-        }
-
-        const LoginUserPayloadDto = new UserLoginPayload({
-            email: body.email,
-            password: body.password
-        });
-
-        const result = await this.accountActions.loginAdminUser(LoginUserPayloadDto);
-
-        if (
-            (result.isErr())
-            ||
-            (result instanceof Err)
-        ) {
-            return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json(result.unwrapErr());
-        }
-
-        const unwrapped = result.unwrapOr({
-            data: 'error'
-        });
-    
-        return response.json(unwrapped);
+      return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json(result.unwrapErr());
     }
 
-    @Post("login")
-    async loginUser(
-        @Body() body: {
-            email: string,
-            password: string
-        },
-        @Res() response: Response
-    ) {
-        if (!(body) || !(body.email) || !(body.password)) {
-            return response.status(HttpStatus.BAD_REQUEST).json({ data: "malformed body" });
-        }
+    const unwrapped = result.unwrapOr({
+      data: 'error'
+    });
 
-        const LoginUserPayloadDto = new UserLoginPayload({
-            email: body.email,
-            password: body.password
-        });
+    return response.json(unwrapped);
+  }
 
-        const result = await this.accountActions.loginUser(LoginUserPayloadDto);
-
-        if (
-            (result.isErr())
-            ||
-            (result instanceof Err)
-        ) {
-            return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json(result.unwrapErr());
-        }
-
-        const unwrapped = result.unwrapOr({
-            data: 'error'
-        });
-    
-        return response.json(unwrapped);
+  @Post("login")
+  async loginUser(
+    @Body() body: {
+      email: string,
+      password: string
+    },
+    @Res() response: Response
+  ) {
+    if (!(body) || !(body.email) || !(body.password)) {
+      return response.status(HttpStatus.BAD_REQUEST).json({ data: "malformed body" });
     }
+
+    const LoginUserPayloadDto = new UserLoginPayload({
+      email: body.email,
+      password: body.password
+    });
+
+    const result = await this.accountActions.loginUser(LoginUserPayloadDto);
+
+    if (
+      (result.isErr())
+      ||
+      (result instanceof Err)
+    ) {
+      return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json(result.unwrapErr());
+    }
+
+    const unwrapped = result.unwrapOr({
+      data: 'error'
+    });
+
+    return response.json(unwrapped);
+  }
 }
